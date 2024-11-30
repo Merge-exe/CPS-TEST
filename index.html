@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CPS Test</title>
+    <style>
+        /* Global Styles */
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #ff5f6d, #ffc3a0);
+            background-size: 400% 400%;
+            animation: gradientAnimation 10s ease infinite;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            text-align: center;
+            color: white;
+        }
+
+        /* Cool Animated Background */
+        @keyframes gradientAnimation {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Main Content Area */
+        .container {
+            padding: 40px;
+            border-radius: 20px;
+            background: rgba(0, 0, 0, 0.5);
+            box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.5);
+            width: 80%;
+            max-width: 600px;
+        }
+
+        h1 {
+            font-size: 36px;
+            margin-bottom: 20px;
+        }
+
+        .modeButton {
+            padding: 15px 30px;
+            font-size: 20px;
+            margin: 10px;
+            cursor: pointer;
+            background-color: #0077ff;
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            transition: transform 0.2s ease-in-out;
+        }
+
+        .modeButton:hover {
+            transform: scale(1.1);
+            background-color: #005bb5;
+        }
+
+        .modeButton:active {
+            background-color: #004499;
+        }
+
+        /* Test Button */
+        #testButton {
+            padding: 25px 50px;
+            font-size: 24px;
+            cursor: pointer;
+            background-color: #28a745;
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0px 6px 15px rgba(0, 0, 0, 0.2);
+            margin-top: 20px;
+            transition: transform 0.3s ease-in-out;
+        }
+
+        #testButton:hover {
+            transform: scale(1.1);
+            background-color: #218838;
+        }
+
+        #testButton:active {
+            background-color: #1c7430;
+        }
+
+        /* Timer and Score */
+        #score, #timer {
+            font-size: 20px;
+            margin-top: 15px;
+        }
+
+        #resultArea {
+            display: none;
+            margin-top: 40px;
+        }
+
+        #resultArea p {
+            font-size: 24px;
+            margin-top: 10px;
+        }
+
+        #rankImage {
+            width: 150px;
+            height: auto;
+            margin-top: 20px;
+        }
+
+        /* Centering content and responsiveness */
+        @media (max-width: 600px) {
+            .container {
+                padding: 30px;
+                width: 90%;
+            }
+
+            h1 {
+                font-size: 28px;
+            }
+
+            .modeButton {
+                font-size: 18px;
+                padding: 12px 24px;
+            }
+
+            #testButton {
+                font-size: 20px;
+                padding: 20px 40px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>CPS Test</h1>
+    <p>Choose your test mode:</p>
+
+    <div id="modes">
+        <button class="modeButton" id="mode1">1 Second</button>
+        <button class="modeButton" id="mode5">5 Seconds</button>
+        <button class="modeButton" id="mode10">10 Seconds</button>
+    </div>
+
+    <div id="testArea" style="display: none;">
+        <button id="testButton">Click Me!</button>
+        <p id="score">Score: 0</p>
+        <p id="timer" style="display: none;">Time Left: 0</p>
+    </div>
+
+    <div id="resultArea">
+        <p id="cpsResult"></p>
+        <p id="rankResult"></p>
+        <img id="rankImage" src="" alt="Rank Image">
+    </div>
+
+    <p id="instructions">Choose a mode to start the test!</p>
+</div>
+
+<script>
+    let score = 0;
+    let timeLeft = 0;
+    let timerInterval;
+    let testMode;
+    let timerStarted = false;
+    const scoreDisplay = document.getElementById('score');
+    const timerDisplay = document.getElementById('timer');
+    const testButton = document.getElementById('testButton');
+    const instructions = document.getElementById('instructions');
+    const modes = document.getElementById('modes');
+    const testArea = document.getElementById('testArea');
+    const resultArea = document.getElementById('resultArea');
+    const cpsResult = document.getElementById('cpsResult');
+    const rankResult = document.getElementById('rankResult');
+    const rankImage = document.getElementById('rankImage');
+
+    // Function to start the test with the selected mode
+    function startTest(mode) {
+        testMode = mode;
+        score = 0;
+        scoreDisplay.textContent = `Score: ${score}`;
+        timerDisplay.textContent = `Time Left: ${mode}`;
+        instructions.textContent = `Click the button as fast as you can for ${mode} seconds!`;
+
+        modes.style.display = 'none';
+        testArea.style.display = 'block';
+
+        // Set initial time
+        timeLeft = mode;
+        timerDisplay.style.display = 'block';  // Show the timer
+
+        // Enable the button
+        testButton.disabled = false;
+        testButton.addEventListener('click', increaseScore);
+    }
+
+    // Function to increase the score on each click
+    function increaseScore() {
+        if (!timerStarted) {
+            // Start the timer only when the button is clicked for the first time
+            startTimer();
+        }
+
+        score++;
+        scoreDisplay.textContent = `Score: ${score}`;
+    }
+
+    // Start the timer
+    function startTimer() {
+        timerStarted = true;
+
+        // Start the timer countdown
+        timerInterval = setInterval(function() {
+            timeLeft--;
+            timerDisplay.textContent = `Time Left: ${timeLeft}`;
+
+            if (timeLeft <= 0) {
+                clearInterval(timerInterval);
+                testButton.disabled = true;
+                showResults();
+            }
+        }, 1000);
+    }
+
+    // Function to show the results after the test ends
+    function showResults() {
+        // Calculate CPS (Clicks per Second)
+        let cps = score / testMode;
+        cpsResult.textContent = `Your CPS: ${cps.toFixed(2)}`;
+
+        // Determine rank based on CPS and display corresponding image and message
+        let rank;
+        let imagePath = '';
+        let message = '';
+
+        if (cps >= 9) {
+            rank = 'Cheetah';
+            imagePath = 'cheetah.png';
+            message = 'You are fast, You are speed.';
+        } else if (cps >= 3) {
+            rank = 'Human';
+            imagePath = 'human.png';
+            message = 'You have average cps, also the pic is of the creator';
+        } else if (cps >= 1) {
+            rank = 'Turtle';
+            imagePath = 'turtle.png';
+            message = 'You are slow, train for another 100 years you peasant';
+        } else {
+            rank = 'Turtle';
+            imagePath = 'turtle.png';
+            message = 'You are too slow, train for another 100 years you peasant';
+        }
+
+        rankResult.textContent = `Your Rank: ${rank}`;
+        rankImage.src = imagePath; // Set the image based on CPS
+        rankImage.alt = `${rank} Image`; // Alt text for the image
+        rankResult.textContent = message;
+
+        // Show the results area
+        resultArea.style.display = 'block';
+        instructions.textContent = 'Test completed!';
+    }
+
+    // Event listeners for the mode buttons
+    document.getElementById('mode1').addEventListener('click', () => startTest(1));
+    document.getElementById('mode5').addEventListener('click', () => startTest(5));
+    document.getElementById('mode10').addEventListener('click', () => startTest(10));
+</script>
+
+</body>
+</html>
